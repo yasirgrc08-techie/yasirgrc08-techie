@@ -1,6 +1,6 @@
 <div align="center">
   
-  ![Header](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=180&section=header&text=Yasir%20Sharfi&fontSize=42&fontColor=fff&animation=twinkling&fontAlignY=32&desc=Software%20Engineer%20II%20@%20Microsoft%20|%20Azure%20Cloud%20Storage&descSize=16&descAlignY=52)
+  ![Header](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=180&section=header&text=Yasir%20Arafat%20Sharfi&fontSize=42&fontColor=fff&animation=twinkling&fontAlignY=32&desc=Software%20Engineer%20II%20@%20Microsoft%20|%20Azure%20Cloud%20Storage&descSize=16&descAlignY=52)
 
   [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&pause=1000&color=58A6FF&center=true&vCenter=true&multiline=true&repeat=true&width=600&height=100&lines=NVMe+%7C+RDMA+%7C+DPU+%7C+Azure+Cloud+Storage;6.5%2B+Years+%7C+Microsoft+%7C+Dell+%7C+Cisco+%7C+Bosch;Building+High-Performance+Distributed+Systems)](https://git.io/typing-svg)
 
@@ -16,7 +16,7 @@
 ## 🧑‍💻 About Me
 
 ```yaml
-name: Yasir Sharfi
+name: Yasir Arafat Sharfi
 role: Software Engineer II (L62) @ Microsoft
 team: Accelerated DPU DirectDrive (Ultra-Disk) DataPath
 location: Bengaluru, India
@@ -269,7 +269,7 @@ HW-SW Verification
 
 [![Gmail](https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:yasir.grc08@gmail.com)
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/yasirgrc08-techie)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/yasirsharfi)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/yasir-arafat-sharfi/)
 
 </div>
 
@@ -281,7 +281,7 @@ HW-SW Verification
 #include <stdio.h>
 
 int main() {
-    char* engineer = "Yasir Sharfi";
+    char* engineer = "Yasir Arafat Sharfi";
     int years_exp = 6;
     char* companies[] = {"Bosch", "Cisco", "Dell", "Microsoft"};
     int passion_level = 100;  // always maxed out
