@@ -28,7 +28,7 @@ currently_building:
   - Storage slicing, replication & coordination on FunOS-powered DPUs
 
 career_highlights:
-  - 6.5+ years across Microsoft, Dell, Cisco & Bosch
+  - 6.7+ years across Microsoft, Dell, Cisco & Bosch
   - Built ASR9K router features (SRv6, MPLS) at Cisco
   - Developed automotive ECU systems for BMW, Audi, Porsche at Bosch
   - Worked on OneFS distributed storage at Dell
