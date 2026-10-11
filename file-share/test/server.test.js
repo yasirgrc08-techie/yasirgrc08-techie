@@ -215,3 +215,10 @@ test('rejects files over the size limit', async (t) => {
   const r = await createUpload(base, { fileSize: CHUNK * 3 });
   assert.equal(r.status, 413);
 });
+
+test('chunk size is capped at 4 MB', async (t) => {
+  const { app, base } = await startServer(await tempDir());
+  t.after(() => app.close());
+  assert.equal((await createUpload(base, { fileSize: 20e6, chunkSize: 4 * 1024 * 1024 })).status, 201);
+  assert.equal((await createUpload(base, { fileSize: 20e6, chunkSize: 4 * 1024 * 1024 + 1, fileName: 'b' })).status, 400);
+});
