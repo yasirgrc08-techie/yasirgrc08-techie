@@ -21,7 +21,7 @@ npm test                        # server + client resilience tests
 npm run start:chaos
 
 # CLI upload. Ctrl+C pauses; running the same command again resumes.
-node client/upload.js ./big-file.iso --server http://localhost:8080 --chunk-size 8MB
+node client/upload.js ./big-file.iso --server http://localhost:8080 --chunk-size 200KB
 ```
 
 Open the page, drop a file, and try breaking things: switch off Wi-Fi, kill the server and
@@ -49,7 +49,7 @@ the file itself.
 | Scenario | What happens |
 |---|---|
 | **Internet disconnect** | Failed requests are retried with exponential backoff and jitter (1 s → 30 s cap). If the browser reports it is offline, the upload waits in the *Offline* state and continues as soon as the `online` event fires. Retries never give up on transient errors. |
-| **Chunked upload** | Files are cut into 1–64 MB chunks (default 4 MB; pick 1 MB for very bad links). Only the failed chunk is resent, never the whole file. Three chunks upload in parallel. |
+| **Chunked upload** | Files are cut into chunks of **200 KB by default** (a 1 MB file becomes 6 chunks; 1/4/8/16 MB can be picked for faster networks). Only the failed chunk is resent, never the whole file. Three chunks upload in parallel. |
 | **Server restart / crash** | All state lives on disk (`meta.json`, `data.bin`, `journal.log`). A chunk is acknowledged only after its data **and** journal entry are fsync'ed. On startup the server rebuilds every upload from the journal, repairs a torn last journal line, and finishes any upload that crashed during finalization. The client sees connection errors, retries, then asks `GET /api/uploads/:id` which chunks exist and sends only the missing ones. |
 | **Client response timeout** | Each chunk request has a timeout that scales with chunk size (assumes ≥ 32 KB/s, minimum 30 s). The browser also aborts a request that sends no bytes for 30 s (stall detection). A timed-out request is simply retried, and the server treats the retry as a duplicate if the original actually arrived. On the server, idle sockets are dropped after 60 s. |
 | **Duplicate requests** | Everything is idempotent. **Create**: an `Idempotency-Key` is saved on the client *before* the request, so a retried create (even after a page reload) returns the same upload. **Chunks**: re-sending a stored chunk returns `200 {duplicate:true}` without rewriting it; concurrent copies of the same chunk are serialized; the same index with *different* bytes is rejected with `409`. **Complete**: calling it twice, or concurrently, returns the same file. |
@@ -78,7 +78,7 @@ the file itself.
 | `PORT` | `8080` | |
 | `DATA_DIR` | `./data` | Must be on persistent storage. |
 | `MAX_FILE_SIZE` | `6GB` | Accepts `KB`/`MB`/`GB` suffixes. |
-| `MIN_CHUNK_SIZE` / `MAX_CHUNK_SIZE` | `256KB` / `64MB` | |
+| `MIN_CHUNK_SIZE` / `MAX_CHUNK_SIZE` | `64KB` / `64MB` | |
 | `UPLOAD_TTL_HOURS` | `24` | Idle uploads are deleted after this. |
 | `FAULT_RATE` | `0` | `0.2` makes ~20% of upload requests fail (demo/testing). |
 | `FAULT_DELAY_MS` | `45000` | How long a "stalled" response is held. |

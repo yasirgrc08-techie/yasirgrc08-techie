@@ -76,7 +76,7 @@ export class UploadStore {
   constructor({
     dataDir,
     maxFileSize = 5 * 1024 ** 3,
-    minChunkSize = 256 * 1024,
+    minChunkSize = 64 * 1024,
     maxChunkSize = 64 * 1024 ** 2,
     uploadTtlMs = 24 * 60 * 60 * 1000,
     log = () => {},

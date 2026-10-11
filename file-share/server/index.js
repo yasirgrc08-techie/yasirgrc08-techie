@@ -16,7 +16,7 @@ const log = (msg) => console.log(`${new Date().toISOString()} ${msg}`);
 const app = await createApp({
   dataDir: env.DATA_DIR || env.UPLOAD_DIR || './data',
   maxFileSize: parseSize(env.MAX_FILE_SIZE, 6 * 1024 ** 3),
-  minChunkSize: parseSize(env.MIN_CHUNK_SIZE, 256 * 1024),
+  minChunkSize: parseSize(env.MIN_CHUNK_SIZE, 64 * 1024),
   maxChunkSize: parseSize(env.MAX_CHUNK_SIZE, 64 * 1024 ** 2),
   uploadTtlMs: Number(env.UPLOAD_TTL_HOURS || 24) * 60 * 60 * 1000,
   faults: faultRate > 0 ? randomFaults(faultRate) : null,
