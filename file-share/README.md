@@ -2,7 +2,22 @@
 
 A simple app to upload files and share them by link. Node.js only, no dependencies.
 
-## Run
+## Deploy (get a public link)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/yasirgrc08-techie/yasirgrc08-techie/tree/claude/new-session-h2jp6b)
+
+1. Click the button and sign in to Render with GitHub.
+2. Click **Apply**. Render reads `render.yaml` and builds the app (about 2 minutes).
+3. Your link appears at the top of the service page, e.g. `https://file-share-xxxx.onrender.com`.
+
+If the button doesn't pick up the branch, use Render's dashboard instead: **New → Blueprint**, select this repo and the
+`claude/new-session-h2jp6b` branch.
+
+The free plan sleeps after 15 minutes without visits (the first visit after that takes ~1 minute) and **deletes
+uploaded files whenever it restarts or redeploys**. To keep files, switch to a paid plan, add a Disk mounted at
+`/var/data`, and set the environment variable `UPLOAD_DIR=/var/data`.
+
+## Run locally
 
 ```bash
 cd file-share
@@ -27,4 +42,3 @@ Open the page, drop a file, then use **Copy link** to share it. Anyone who has t
 - `DELETE /api/files/:id`: delete a file
 
 Note: there is no login, so anyone who can open the app can upload and delete files.
-GitHub Pages can't run it because it needs a Node server. Run it on a VPS, Render, Railway or similar.

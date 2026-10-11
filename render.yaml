@@ -1,0 +1,13 @@
+# Render Blueprint: deploys the file-share app as a web service.
+services:
+  - type: web
+    name: file-share
+    runtime: node
+    plan: free
+    rootDir: file-share
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/files
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
