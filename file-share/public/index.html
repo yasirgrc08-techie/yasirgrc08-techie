@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>File Share</title>
+  <style>
+    :root { --bg: #f6f7f9; --card: #fff; --text: #16181d; --muted: #5f6673; --border: #e2e5ea; --accent: #2563eb; --bad: #b91c1c; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #0f1115; --card: #171a21; --text: #e8eaee; --muted: #9aa2b1; --border: #2a2f3a; --accent: #6b9cff; --bad: #f87171; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, sans-serif; }
+    main { max-width: 760px; margin: 0 auto; padding: 24px 16px 60px; }
+    h1 { font-size: 22px; margin: 0 0 16px; }
+    h2 { font-size: 16px; margin: 28px 0 10px; }
+    .drop { display: block; text-align: center; padding: 36px 16px; border: 2px dashed var(--border); border-radius: 10px; background: var(--card); cursor: pointer; }
+    .drop:hover, .drop.over { border-color: var(--accent); }
+    .drop small { display: block; color: var(--muted); }
+    ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+    li { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+    .name { font-weight: 600; overflow-wrap: anywhere; flex: 1 1 200px; }
+    .name small { display: block; font-weight: 400; color: var(--muted); }
+    .bar { width: 100%; height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
+    .bar div { height: 100%; width: 0; background: var(--accent); }
+    button, a.btn { font: inherit; border: 1px solid var(--border); background: transparent; color: var(--accent); border-radius: 6px; padding: 5px 12px; cursor: pointer; text-decoration: none; }
+    button.del { color: var(--bad); }
+    .muted { color: var(--muted); }
+  </style>
+</head>
+<body>
+<main>
+  <h1>File Share</h1>
+  <label class="drop" id="drop">
+    <input type="file" id="picker" multiple hidden>
+    <strong>Drop files here or click to choose</strong>
+    <small>Upload a file and get a link to share it.</small>
+  </label>
+
+  <ul id="uploads" style="margin-top:12px"></ul>
+
+  <h2>Files</h2>
+  <ul id="files"></ul>
+  <p id="empty" class="muted" hidden>No files yet.</p>
+</main>
+
+<script>
+const fmt = (n) => {
+  const u = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let i = 0;
+  while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
+  return `${n.toFixed(i ? 1 : 0)} ${u[i]}`;
+};
+const el = (tag, props = {}, ...kids) => {
+  const e = Object.assign(document.createElement(tag), props);
+  e.append(...kids);
+  return e;
+};
+
+function upload(file) {
+  const bar = el('div');
+  const status = el('small', { textContent: `0% of ${fmt(file.size)}` });
+  const item = el('li', {}, el('div', { className: 'name', textContent: file.name }, status), el('div', { className: 'bar' }, bar));
+  document.getElementById('uploads').prepend(item);
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', '/api/upload');
+  xhr.setRequestHeader('X-File-Name', encodeURIComponent(file.name));
+  xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+  xhr.upload.onprogress = (e) => {
+    const pct = (e.loaded / e.total) * 100;
+    bar.style.width = `${pct}%`;
+    status.textContent = `${pct.toFixed(1)}% of ${fmt(file.size)}`;
+  };
+  xhr.onload = () => {
+    if (xhr.status === 201) {
+      item.remove();
+      loadFiles();
+    } else {
+      status.textContent = `Failed: ${JSON.parse(xhr.responseText || '{}').error || xhr.status}`;
+    }
+  };
+  xhr.onerror = () => (status.textContent = 'Failed: network error');
+  xhr.send(file);
+}
+
+async function loadFiles() {
+  const files = await (await fetch('/api/files')).json();
+  const list = document.getElementById('files');
+  list.replaceChildren(...files.map((f) => {
+    const link = new URL(f.url, location.href).href;
+    const copy = el('button', { textContent: 'Copy link' });
+    copy.onclick = async () => {
+      await navigator.clipboard.writeText(link).catch(() => prompt('Copy this link:', link));
+      copy.textContent = 'Copied';
+      setTimeout(() => (copy.textContent = 'Copy link'), 1200);
+    };
+    const del = el('button', { className: 'del', textContent: 'Delete' });
+    del.onclick = async () => {
+      if (!confirm(`Delete ${f.name}?`)) return;
+      await fetch(`/api/files/${f.id}`, { method: 'DELETE' });
+      loadFiles();
+    };
+    return el('li', {},
+      el('div', { className: 'name', textContent: f.name },
+        el('small', { textContent: `${fmt(f.size)} · ${new Date(f.uploadedAt).toLocaleString()}` })),
+      el('div', {}, el('a', { className: 'btn', href: f.url, textContent: 'Download' }), ' ', copy, ' ', del));
+  }));
+  document.getElementById('empty').hidden = files.length > 0;
+}
+
+const drop = document.getElementById('drop');
+document.getElementById('picker').onchange = (e) => { [...e.target.files].forEach(upload); e.target.value = ''; };
+drop.ondragover = (e) => { e.preventDefault(); drop.classList.add('over'); };
+drop.ondragleave = () => drop.classList.remove('over');
+drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove('over'); [...e.dataTransfer.files].forEach(upload); };
+loadFiles();
+</script>
+</body>
+</html>
