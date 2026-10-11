@@ -172,10 +172,10 @@ test('a zero-byte file completes', async (t) => {
   assert.equal((await download(base, result.url)).length, 0);
 });
 
-test('default chunk size is 200 KB: a 1 MB file is sent as 6 chunks', async (t) => {
+test('default chunk size is 4 MB: a 10 MB file is sent as 3 chunks', async (t) => {
   const { app, base } = await startServer(await tempDir());
   t.after(() => app.close());
-  const data = randomBytes(1024 * 1024);
+  const data = randomBytes(10 * 1024 * 1024);
   const sizes = [];
   const http = {
     request(method, url, opts) {
@@ -185,7 +185,7 @@ test('default chunk size is 200 KB: a 1 MB file is sent as 6 chunks', async (t) 
   };
   const up = makeUploader(base, data, { http, chunkSize: undefined });
   const result = await up.start();
-  assert.equal(up.chunkSize, 200 * 1024);
-  assert.deepEqual(sizes.sort((a, b) => b - a), [204800, 204800, 204800, 204800, 204800, 24576]);
+  assert.equal(up.chunkSize, 4 * 1024 * 1024);
+  assert.deepEqual(sizes.sort((a, b) => b - a), [4194304, 4194304, 2097152]);
   assert.equal(sha256(await download(base, result.url)), sha256(data));
 });

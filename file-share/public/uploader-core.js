@@ -56,7 +56,7 @@ export class ResumableUpload {
     this.onUpdate = opts.onUpdate || (() => {});
     this.log = opts.log || (() => {});
 
-    this.requestedChunkSize = opts.chunkSize || 200 * KiB;
+    this.requestedChunkSize = opts.chunkSize || 4 * MiB;
     this.concurrency = Math.max(1, opts.concurrency || 3);
     this.baseDelayMs = opts.baseDelayMs ?? 1000;
     this.maxDelayMs = opts.maxDelayMs ?? 30_000;

@@ -14,14 +14,14 @@ const { values, positionals } = parseArgs({
   allowPositionals: true,
   options: {
     server: { type: 'string', default: process.env.UPLOAD_SERVER || 'http://localhost:8080' },
-    'chunk-size': { type: 'string', default: '200KB' },
+    'chunk-size': { type: 'string', default: '4MB' },
     concurrency: { type: 'string', default: '3' },
     state: { type: 'string', default: path.join(os.homedir(), '.resumable-upload', 'state.json') },
   },
 });
 
 if (positionals.length !== 1) {
-  console.error('usage: node client/upload.js <file> [--server URL] [--chunk-size 200KB] [--concurrency 3]');
+  console.error('usage: node client/upload.js <file> [--server URL] [--chunk-size 4MB] [--concurrency 3]');
   process.exit(2);
 }
 
