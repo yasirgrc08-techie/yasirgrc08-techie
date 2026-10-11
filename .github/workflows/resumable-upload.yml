@@ -1,0 +1,23 @@
+name: resumable-upload
+
+on:
+  push:
+    paths: ['resumable-upload/**', '.github/workflows/resumable-upload.yml']
+  pull_request:
+    paths: ['resumable-upload/**', '.github/workflows/resumable-upload.yml']
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 22]
+    defaults:
+      run:
+        working-directory: resumable-upload
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm test

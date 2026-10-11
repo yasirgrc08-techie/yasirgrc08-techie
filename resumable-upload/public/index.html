@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Resilient Upload</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%232563eb' d='M12 3 5 10h4v7h6v-7h4z'/%3E%3Crect fill='%232563eb' x='5' y='19' width='14' height='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 10h4v7h6v-7h4z"/><rect x="5" y="19" width="14" height="2"/></svg>
+      <span>Resilient Upload</span>
+    </div>
+    <div class="badges">
+      <span id="net" class="badge">Network</span>
+      <span id="srv" class="badge">Server</span>
+    </div>
+  </header>
+
+  <main>
+    <div id="chaos" class="notice" hidden>
+      Fault injection is on: the server randomly drops connections, loses responses and stalls replies to show that uploads still finish.
+    </div>
+
+    <section>
+      <label id="drop" class="drop" tabindex="0">
+        <input id="picker" type="file" multiple hidden>
+        <strong>Drop files here or click to choose</strong>
+        <span>Files up to <span id="limit">6 GB</span> are sent in chunks. Each chunk is checksummed, retried and resumable.</span>
+      </label>
+      <div class="options">
+        <label>Chunk size
+          <select id="chunkSize">
+            <option value="1048576">1 MB (very poor network)</option>
+            <option value="4194304" selected>4 MB</option>
+            <option value="8388608">8 MB</option>
+            <option value="16777216">16 MB (good network)</option>
+          </select>
+        </label>
+        <label>Parallel chunks
+          <select id="concurrency">
+            <option>1</option><option>2</option><option selected>3</option><option>4</option><option>6</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section id="resumeSection" hidden>
+      <h2>Interrupted uploads</h2>
+      <p class="muted">Select the same file again to continue where it stopped. Chunks already on the server are not sent again.</p>
+      <ul id="resumeList" class="list"></ul>
+    </section>
+
+    <section id="uploadSection" hidden>
+      <h2>Uploads</h2>
+      <ul id="uploads" class="list"></ul>
+    </section>
+
+    <section>
+      <div class="row">
+        <h2>Shared files</h2>
+        <button id="refresh" class="ghost" type="button">Refresh</button>
+      </div>
+      <ul id="files" class="list"></ul>
+      <p id="noFiles" class="muted" hidden>No files yet.</p>
+    </section>
+  </main>
+
+  <template id="uploadTpl">
+    <li class="card">
+      <div class="row">
+        <div class="name"></div>
+        <div class="actions">
+          <button class="pause ghost" type="button">Pause</button>
+          <button class="resume ghost" type="button" hidden>Resume</button>
+          <button class="cancel ghost danger" type="button">Cancel</button>
+        </div>
+      </div>
+      <div class="bar"><div class="fill"></div></div>
+      <div class="row meta">
+        <span class="state"></span>
+        <span class="numbers"></span>
+      </div>
+      <div class="share" hidden>
+        <input class="link" readonly>
+        <button class="copy" type="button">Copy link</button>
+      </div>
+    </li>
+  </template>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
