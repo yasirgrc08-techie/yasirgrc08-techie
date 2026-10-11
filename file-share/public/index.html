@@ -3,118 +3,93 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>File Share</title>
-  <style>
-    :root { --bg: #f6f7f9; --card: #fff; --text: #16181d; --muted: #5f6673; --border: #e2e5ea; --accent: #2563eb; --bad: #b91c1c; }
-    @media (prefers-color-scheme: dark) {
-      :root { --bg: #0f1115; --card: #171a21; --text: #e8eaee; --muted: #9aa2b1; --border: #2a2f3a; --accent: #6b9cff; --bad: #f87171; }
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, sans-serif; }
-    main { max-width: 760px; margin: 0 auto; padding: 24px 16px 60px; }
-    h1 { font-size: 22px; margin: 0 0 16px; }
-    h2 { font-size: 16px; margin: 28px 0 10px; }
-    .drop { display: block; text-align: center; padding: 36px 16px; border: 2px dashed var(--border); border-radius: 10px; background: var(--card); cursor: pointer; }
-    .drop:hover, .drop.over { border-color: var(--accent); }
-    .drop small { display: block; color: var(--muted); }
-    ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-    li { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
-    .name { font-weight: 600; overflow-wrap: anywhere; flex: 1 1 200px; }
-    .name small { display: block; font-weight: 400; color: var(--muted); }
-    .bar { width: 100%; height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
-    .bar div { height: 100%; width: 0; background: var(--accent); }
-    button, a.btn { font: inherit; border: 1px solid var(--border); background: transparent; color: var(--accent); border-radius: 6px; padding: 5px 12px; cursor: pointer; text-decoration: none; }
-    button.del { color: var(--bad); }
-    .muted { color: var(--muted); }
-  </style>
+  <title>Resilient Upload</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%232563eb' d='M12 3 5 10h4v7h6v-7h4z'/%3E%3Crect fill='%232563eb' x='5' y='19' width='14' height='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<main>
-  <h1>File Share</h1>
-  <label class="drop" id="drop">
-    <input type="file" id="picker" multiple hidden>
-    <strong>Drop files here or click to choose</strong>
-    <small>Upload a file and get a link to share it.</small>
-  </label>
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 10h4v7h6v-7h4z"/><rect x="5" y="19" width="14" height="2"/></svg>
+      <span>Resilient Upload</span>
+    </div>
+    <div class="badges">
+      <span id="net" class="badge">Network</span>
+      <span id="srv" class="badge">Server</span>
+    </div>
+  </header>
 
-  <ul id="uploads" style="margin-top:12px"></ul>
+  <main>
+    <div id="chaos" class="notice" hidden>
+      Fault injection is on: the server randomly drops connections, loses responses and stalls replies to show that uploads still finish.
+    </div>
 
-  <h2>Files</h2>
-  <ul id="files"></ul>
-  <p id="empty" class="muted" hidden>No files yet.</p>
-</main>
+    <section>
+      <label id="drop" class="drop" tabindex="0">
+        <input id="picker" type="file" multiple hidden>
+        <strong>Drop files here or click to choose</strong>
+        <span>Files up to <span id="limit">6 GB</span> are sent in chunks. Each chunk is checksummed, retried and resumable.</span>
+      </label>
+      <div class="options">
+        <label>Chunk size
+          <select id="chunkSize">
+            <option value="1048576">1 MB (very poor network)</option>
+            <option value="4194304" selected>4 MB</option>
+            <option value="8388608">8 MB</option>
+            <option value="16777216">16 MB (good network)</option>
+          </select>
+        </label>
+        <label>Parallel chunks
+          <select id="concurrency">
+            <option>1</option><option>2</option><option selected>3</option><option>4</option><option>6</option>
+          </select>
+        </label>
+      </div>
+    </section>
 
-<script>
-const fmt = (n) => {
-  const u = ['B', 'KB', 'MB', 'GB', 'TB'];
-  let i = 0;
-  while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
-  return `${n.toFixed(i ? 1 : 0)} ${u[i]}`;
-};
-const el = (tag, props = {}, ...kids) => {
-  const e = Object.assign(document.createElement(tag), props);
-  e.append(...kids);
-  return e;
-};
+    <section id="resumeSection" hidden>
+      <h2>Interrupted uploads</h2>
+      <p class="muted">Select the same file again to continue where it stopped. Chunks already on the server are not sent again.</p>
+      <ul id="resumeList" class="list"></ul>
+    </section>
 
-function upload(file) {
-  const bar = el('div');
-  const status = el('small', { textContent: `0% of ${fmt(file.size)}` });
-  const item = el('li', {}, el('div', { className: 'name', textContent: file.name }, status), el('div', { className: 'bar' }, bar));
-  document.getElementById('uploads').prepend(item);
+    <section id="uploadSection" hidden>
+      <h2>Uploads</h2>
+      <ul id="uploads" class="list"></ul>
+    </section>
 
-  const xhr = new XMLHttpRequest();
-  xhr.open('POST', '/api/upload');
-  xhr.setRequestHeader('X-File-Name', encodeURIComponent(file.name));
-  xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-  xhr.upload.onprogress = (e) => {
-    const pct = (e.loaded / e.total) * 100;
-    bar.style.width = `${pct}%`;
-    status.textContent = `${pct.toFixed(1)}% of ${fmt(file.size)}`;
-  };
-  xhr.onload = () => {
-    if (xhr.status === 201) {
-      item.remove();
-      loadFiles();
-    } else {
-      status.textContent = `Failed: ${JSON.parse(xhr.responseText || '{}').error || xhr.status}`;
-    }
-  };
-  xhr.onerror = () => (status.textContent = 'Failed: network error');
-  xhr.send(file);
-}
+    <section>
+      <div class="row">
+        <h2>Shared files</h2>
+        <button id="refresh" class="ghost" type="button">Refresh</button>
+      </div>
+      <ul id="files" class="list"></ul>
+      <p id="noFiles" class="muted" hidden>No files yet.</p>
+    </section>
+  </main>
 
-async function loadFiles() {
-  const files = await (await fetch('/api/files')).json();
-  const list = document.getElementById('files');
-  list.replaceChildren(...files.map((f) => {
-    const link = new URL(f.url, location.href).href;
-    const copy = el('button', { textContent: 'Copy link' });
-    copy.onclick = async () => {
-      await navigator.clipboard.writeText(link).catch(() => prompt('Copy this link:', link));
-      copy.textContent = 'Copied';
-      setTimeout(() => (copy.textContent = 'Copy link'), 1200);
-    };
-    const del = el('button', { className: 'del', textContent: 'Delete' });
-    del.onclick = async () => {
-      if (!confirm(`Delete ${f.name}?`)) return;
-      await fetch(`/api/files/${f.id}`, { method: 'DELETE' });
-      loadFiles();
-    };
-    return el('li', {},
-      el('div', { className: 'name', textContent: f.name },
-        el('small', { textContent: `${fmt(f.size)} · ${new Date(f.uploadedAt).toLocaleString()}` })),
-      el('div', {}, el('a', { className: 'btn', href: f.url, textContent: 'Download' }), ' ', copy, ' ', del));
-  }));
-  document.getElementById('empty').hidden = files.length > 0;
-}
+  <template id="uploadTpl">
+    <li class="card">
+      <div class="row">
+        <div class="name"></div>
+        <div class="actions">
+          <button class="pause ghost" type="button">Pause</button>
+          <button class="resume ghost" type="button" hidden>Resume</button>
+          <button class="cancel ghost danger" type="button">Cancel</button>
+        </div>
+      </div>
+      <div class="bar"><div class="fill"></div></div>
+      <div class="row meta">
+        <span class="state"></span>
+        <span class="numbers"></span>
+      </div>
+      <div class="share" hidden>
+        <input class="link" readonly>
+        <button class="copy" type="button">Copy link</button>
+      </div>
+    </li>
+  </template>
 
-const drop = document.getElementById('drop');
-document.getElementById('picker').onchange = (e) => { [...e.target.files].forEach(upload); e.target.value = ''; };
-drop.ondragover = (e) => { e.preventDefault(); drop.classList.add('over'); };
-drop.ondragleave = () => drop.classList.remove('over');
-drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove('over'); [...e.dataTransfer.files].forEach(upload); };
-loadFiles();
-</script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>

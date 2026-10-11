@@ -1,12 +1,17 @@
 {
   "name": "file-share",
   "version": "1.0.0",
-  "description": "Simple file upload and sharing app",
+  "description": "Resumable, chunked uploads of multi-GB files over unreliable networks, with file sharing links.",
   "type": "module",
   "private": true,
-  "scripts": {
-    "start": "node server.js"
+  "engines": {
+    "node": ">=20"
   },
-  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node server.js",
+    "start:chaos": "FAULT_RATE=0.2 FAULT_DELAY_MS=40000 node server.js",
+    "upload": "node client/upload.js",
+    "test": "node --test test/*.test.js"
+  },
   "license": "MIT"
 }
